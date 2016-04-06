@@ -138,7 +138,7 @@ public abstract class LoginAbstractAzkabanServlet extends
    */
   private void logRequest(HttpServletRequest req, Session session) {
     StringBuilder buf = new StringBuilder();
-    buf.append(req.getRemoteAddr()).append(" ");
+    buf.append(HttpUtils.remoteAddr(req)).append(" ");
     if (session != null && session.getUser() != null) {
       buf.append(session.getUser().getUserId()).append(" ");
     } else {
@@ -212,7 +212,7 @@ public abstract class LoginAbstractAzkabanServlet extends
 
   private Session getSessionFromRequest(HttpServletRequest req)
       throws ServletException {
-    String remoteIp = req.getRemoteAddr();
+    String remoteIp = HttpUtils.remoteAddr(req);
     Cookie cookie = getCookieByName(req, SESSION_ID_NAME);
     String sessionId = null;
 
@@ -269,7 +269,7 @@ public abstract class LoginAbstractAzkabanServlet extends
         // See if the session id is properly set.
         if (params.containsKey("session.id")) {
           String sessionId = (String) params.get("session.id");
-          String ip = req.getRemoteAddr();
+          String ip = HttpUtils.remoteAddr(req);
 
           session = getSessionFromSessionId(sessionId, ip);
           if (session != null) {
@@ -286,7 +286,7 @@ public abstract class LoginAbstractAzkabanServlet extends
 
         String username = (String) params.get("username");
         String password = (String) params.get("password");
-        String ip = req.getRemoteAddr();
+        String ip = HttpUtils.remoteAddr(req);
 
         try {
           session = createSession(username, password, ip);
@@ -333,7 +333,7 @@ public abstract class LoginAbstractAzkabanServlet extends
       throws UserManagerException, ServletException {
     String username = getParam(req, "username");
     String password = getParam(req, "password");
-    String ip = req.getRemoteAddr();
+    String ip = HttpUtils.remoteAddr(req);
 
     return createSession(username, password, ip);
   }

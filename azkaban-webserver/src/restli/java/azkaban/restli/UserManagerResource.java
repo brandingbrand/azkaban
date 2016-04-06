@@ -16,8 +16,11 @@
 
 package azkaban.restli;
 
+import java.util.Arrays;
 import java.util.UUID;
 import javax.servlet.ServletException;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import azkaban.restli.user.User;
@@ -44,9 +47,16 @@ public class UserManagerResource extends ResourceContextHolder {
   public String login(@ActionParam("username") String username,
       @ActionParam("password") String password) throws UserManagerException,
       ServletException {
-    String ip =
-        (String) this.getContext().getRawRequestContext()
-            .getLocalAttr("REMOTE_ADDR");
+
+    String[] xForwardedForList = StringUtils.split(
+            (String) this.getContext().getRawRequestContext().getLocalAttr("X-Forwarded-For"),
+            ","
+    );
+    logger.info("X-Forwarded-For list: " + Arrays.toString(xForwardedForList));
+
+    String ip = xForwardedForList.length > 0 ?
+            xForwardedForList[0].trim() :
+            (String) this.getContext().getRawRequestContext().getLocalAttr("X-Forwarded-For");
     logger
         .info("Attempting to login for " + username + " from ip '" + ip + "'");
 
@@ -59,9 +69,15 @@ public class UserManagerResource extends ResourceContextHolder {
 
   @Action(name = "getUserFromSessionId")
   public User getUserFromSessionId(@ActionParam("sessionId") String sessionId) {
-    String ip =
-        (String) this.getContext().getRawRequestContext()
-            .getLocalAttr("REMOTE_ADDR");
+    String[] xForwardedForList = StringUtils.split(
+            (String) this.getContext().getRawRequestContext().getLocalAttr("X-Forwarded-For"),
+            ","
+    );
+    logger.info("X-Forwarded-For list: " + Arrays.toString(xForwardedForList));
+
+    String ip = xForwardedForList.length > 0 ?
+            xForwardedForList[0].trim() :
+            (String) this.getContext().getRawRequestContext().getLocalAttr("X-Forwarded-For");
     Session session = getSessionFromSessionId(sessionId, ip);
     azkaban.user.User azUser = session.getUser();
 

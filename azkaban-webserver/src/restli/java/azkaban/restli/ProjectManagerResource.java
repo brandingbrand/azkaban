@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 
 import javax.servlet.ServletException;
 
@@ -39,6 +40,7 @@ import com.linkedin.restli.server.annotations.Action;
 import com.linkedin.restli.server.annotations.ActionParam;
 import com.linkedin.restli.server.annotations.RestLiActions;
 import com.linkedin.restli.server.resources.ResourceContextHolder;
+import org.apache.velocity.util.StringUtils;
 
 @RestLiActions(name = "project", namespace = "azkaban.restli")
 public class ProjectManagerResource extends ResourceContextHolder {
@@ -58,9 +60,16 @@ public class ProjectManagerResource extends ResourceContextHolder {
     logger.info("Deploy called. {sessionId: " + sessionId + ", projectName: "
         + projectName + ", packageUrl:" + packageUrl + "}");
 
-    String ip =
-        (String) this.getContext().getRawRequestContext()
-            .getLocalAttr("REMOTE_ADDR");
+    String[] xForwardedForList = StringUtils.split(
+            (String) this.getContext().getRawRequestContext().getLocalAttr("X-Forwarded-For"),
+            ","
+    );
+    logger.info("X-Forwarded-For list: " + Arrays.toString(xForwardedForList));
+
+    String ip = xForwardedForList.length > 0 ?
+            xForwardedForList[0].trim() :
+            (String) this.getContext().getRawRequestContext().getLocalAttr("X-Forwarded-For");
+
     User user = ResourceUtils.getUserFromSessionId(sessionId, ip);
     ProjectManager projectManager = getAzkaban().getProjectManager();
     Project project = projectManager.getProject(projectName);
